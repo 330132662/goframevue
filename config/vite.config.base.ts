@@ -3,9 +3,10 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
 import svgLoader from 'vite-svg-loader';
+import configEnvPlugin from './plugin/configEnv';
 const { themeColor } = require('../src/config/settings.json');
 export default defineConfig({
-  plugins: [vue(), vueJsx(), svgLoader({ svgoConfig: {} })],
+  plugins: [configEnvPlugin(), vue(), vueJsx(), svgLoader({ svgoConfig: {} })],
   resolve: {
     alias: [
       {

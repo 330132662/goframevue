@@ -1,5 +1,6 @@
-const domain="";//您的域名//独立部署需要填写Go服务api接口域名(部署在Go目录下可以留空)
-const localhost="http://localhost:8600";//访问本地的域名和端口，如果您改变Go服务端口，请自行修改
+// 下面两个值由各自的 .env 文件注入（.env / .env.development / .env.production）
+const domain="%VITE_API_DOMAIN%";//您的域名//独立部署需要填写Go服务api接口域名(部署在Go目录下可以留空)
+const localhost="%VITE_API_BASE_URL%";//访问本地的域名和端口，如果您改变Go服务端口，请自行修改
 window.globalConfig = {
 	Main_url:`${domain}`,//域名
 	Main_url_dev:`${localhost}`,//域名
