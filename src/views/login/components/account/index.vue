@@ -52,7 +52,8 @@ import { type FormInstance, Message } from '@arco-design/web-vue'
 import { useRouter } from 'vue-router';
 import { useStorage } from '@vueuse/core'
 import { getCaptcha } from '@/api/user';
-import { useUserStore } from '@/store';
+import { useUserStore, useAppStore } from '@/store';
+import { getHomePath } from '@/router/constants';
 import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 const loginConfig = useStorage('login-data', {
@@ -126,17 +127,21 @@ const handleLogin = async () => {
       captcha: form.captcha,
       codeid: form.codeid
     })
+    const appStore = useAppStore();
     const { redirect, ...othersQuery } = router.currentRoute.value.query;
-    var toURl=(redirect as string)
-    if(!toURl||toURl=="notFound"||toURl=="login"){
-        toURl="home"
+    // B2 登录成功后用 getHomePath(appAsyncRoute) 从菜单推导首页；
+    // redirect 为 notFound/login/home/空 时兜底 homePath；按 path 跳转失败 .catch() 再按 name 兜底
+    const homePath = getHomePath(appStore.appAsyncRoute as any);
+    const toURl = (redirect as string) || '';
+    if (!toURl || toURl == 'notFound' || toURl == 'login' || toURl == 'home') {
+      router
+        .replace({ path: homePath, query: { ...othersQuery } })
+        .catch(() => router.replace({ name: 'home' }).catch(() => {}));
+    } else {
+      router
+        .replace({ name: toURl, query: { ...othersQuery } })
+        .catch(() => router.replace({ path: homePath }).catch(() => {}));
     }
-    router.replace({
-      name: toURl || 'home',
-      query: {
-        ...othersQuery,
-      },
-    });
     const { rememberMe } = loginConfig.value
     loginConfig.value.username = rememberMe ? form.username : ''
     loginConfig.value.password = rememberMe ? form.password : ''

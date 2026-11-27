@@ -12,6 +12,10 @@
   import zhTW from '@arco-design/web-vue/es/locale/lang/zh-tw';
   import GlobalSetting from '@/components/global-setting/index.vue';
   import useLocale from '@/hooks/locale';
+  import { useVersionCheck } from '@/hooks/use-version-check';
+
+  // B6 版本更新引导刷新（依赖后端 A11 对入口文件 no-cache，成对落地）
+  useVersionCheck();
 
   const { currentLocale } = useLocale();
   const locale = computed(() => {

@@ -38,7 +38,8 @@
 <script setup lang="ts">
 import { ref,reactive,watch,onMounted} from 'vue';
 import { type FormInstance, Message } from '@arco-design/web-vue'
-import { useUserStore } from '@/store'
+import { useUserStore, useAppStore } from '@/store'
+import { getHomePath } from '@/router/constants'
 import { useRouter } from 'vue-router';
 import * as Regexp from '@/utils/regexp'
 import { getCaptcha } from '@/api/user';
@@ -64,17 +65,18 @@ const handleLogin = async () => {
       email: form.email,
       captcha: form.captcha,
     })
+    const appStore = useAppStore();
     const { redirect, ...othersQuery } = router.currentRoute.value.query;
-    var toURl=(redirect as string)
-    if(toURl=="notFound"){
-        toURl="home"
+    // B2 登录成功后用 getHomePath(appAsyncRoute) 从菜单推导首页；跳转失败 .catch() 再兜底
+    const homePath = getHomePath(appStore.appAsyncRoute as any);
+    const toURl = (redirect as string) || '';
+    if (!toURl || toURl == 'notFound' || toURl == 'login' || toURl == 'home') {
+      router.replace({ path: homePath, query: { ...othersQuery } })
+        .catch(() => router.replace({ name: 'home' }).catch(() => {}));
+    } else {
+      router.replace({ name: toURl, query: { ...othersQuery } })
+        .catch(() => router.replace({ path: homePath }).catch(() => {}));
     }
-    router.replace({
-      name: toURl || 'home',
-      query: {
-        ...othersQuery,
-      },
-    });
     Message.success({content:t('login.form.login.success'),id:"errmsg"})
   } catch (error) {
     form.captcha = ""

@@ -8,10 +8,37 @@ import { cloneDeep } from 'lodash-es';
 import {Notification} from '@arco-design/web-vue';
 import type { AppRouteRecordRaw } from '/@/router/types';
 import { transformObjToRoute } from '/@/router/helper/routeHelper';
-//获取本地保存配置
-const settingsval=localStorage.getItem("settingsval");
+// =====================================================================
+// B5 store 持久化运行态剥离（防刷新死循环）
+// ---------------------------------------------------------------------
+// 【踩坑注释】UI 设置持久化到 localStorage 时若把 isDynamicAddedRoute/
+// serverRoute/serverMenu 一起存了，刷新后守卫误判"动态路由已注册"跳过
+// addRoute → 无限重定向白屏。白名单式恢复：运行态一律不持久化。
+// =====================================================================
+const UI_SETTING_KEYS = [
+  'theme', 'layout', 'colorWeak', 'navbar', 'menu', 'topMenu', 'hideMenu',
+  'menuCollapse', 'footer', 'breadcrumb', 'breadcrumbHeight', 'themeColor',
+  'menuDark', 'navBg', 'menuWidth', 'globalSettings', 'device', 'tabBar',
+  'tabMode', 'menuFromServer', 'menuAccordion',
+];
+
+function loadPersistedSettings(): AppState {
+  const settingsval = localStorage.getItem('settingsval');
+  if (!settingsval) return { ...defaultSettings } as AppState;
+  try {
+    const saved = JSON.parse(settingsval);
+    const restored: any = { ...defaultSettings };
+    UI_SETTING_KEYS.forEach((k) => {
+      if (saved && saved[k] !== undefined) restored[k] = saved[k];
+    });
+    return restored as AppState;
+  } catch {
+    return { ...defaultSettings } as AppState;
+  }
+}
+
 const useAppStore = defineStore('app', {
-  state: (): AppState => settingsval?({...JSON.parse(settingsval)}):({ ...defaultSettings }),
+  state: (): AppState => loadPersistedSettings(),
   getters: {
     appCurrentSetting(state: AppState): AppState {
       return { ...state };
@@ -83,6 +110,9 @@ const useAppStore = defineStore('app', {
     },
     clearServerMenu() {
       this.serverMenu = [];
+      // B5 登出/换账号时同步重置 isDynamicAddedRoute，防止守卫误判跳过 addRoute
+      this.isDynamicAddedRoute = false;
+      this.serverRoute = [];
     },
     // 设置主题色
    setThemeColor (color: string)  {

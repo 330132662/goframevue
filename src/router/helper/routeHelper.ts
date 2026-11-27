@@ -98,6 +98,10 @@ export function transformObjToRoute<T = AppRouteModule>(routeList: AppRouteModul
         meta.affix = false;
         route.meta = meta;
       }
+    } else if (route.children?.length) {
+      // B8 目录型菜单（component 为空）兜底按 LAYOUT 处理，
+      // 防止子页面渲染到根 router-view 丢掉左菜单/顶栏
+      route.component = LAYOUT;
     } else {
       warn('请正确配置路由：' + route?.name + '的component属性');
     }

@@ -7,6 +7,8 @@ import { AxiosCanceler } from './axiosCancel';
 import { isFunction } from '/@/utils/is';
 import { cloneDeep } from 'lodash-es';
 import { ContentTypeEnum,RequestEnum } from './httpEnum';
+import { isLogoutPending, addInflightController, removeInflightController } from './authPending';
+import { getToken } from '@/utils/auth';
 
 export * from './axiosTransform';
 
@@ -78,6 +80,27 @@ export class VAxios {
 
     // Request interceptor configuration processing
     this.axiosInstance.interceptors.request.use((config: AxiosRequestConfig) => {
+      // B3 401 熔断：logoutPending 期间携带 token 的请求直接 reject 不发 HTTP
+      // （放行已清 token 后登录页的验证码等免鉴权请求）
+      // @ts-ignore
+      const withToken = config.requestOptions?.withToken !== false;
+      if (isLogoutPending() && withToken && getToken()) {
+        return Promise.reject({
+          code: 'ERR_CANCELED',
+          message: 'logout_pending',
+          config,
+        });
+      }
+      // B3 每请求创建 AbortController 注册进熔断注册表，支持批量取消在途请求
+      const controller = new AbortController();
+      // @ts-ignore
+      config.__abortController = controller;
+      // @ts-ignore 若调用方已自带 signal 则不覆盖
+      if (!config.signal) {
+        // @ts-ignore
+        config.signal = controller.signal;
+      }
+      addInflightController(controller);
       // If cancel repeat request is turned on, then cancel repeat request is prohibited
       // @ts-ignore
       const { ignoreCancelToken } = config.requestOptions;
@@ -101,6 +124,9 @@ export class VAxios {
     // Response result interceptor processing
     this.axiosInstance.interceptors.response.use((res: AxiosResponse<any>) => {
       res && axiosCanceler.removePending(res.config);
+      // B3 请求结束，从熔断注册表注销
+      // @ts-ignore
+      res?.config?.__abortController && removeInflightController(res.config.__abortController);
       if (responseInterceptors && isFunction(responseInterceptors)) {
         res = responseInterceptors(res);
       }

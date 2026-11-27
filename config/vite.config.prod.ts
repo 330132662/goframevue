@@ -5,6 +5,7 @@ import configVisualizerPlugin from './plugin/visualizer';
 import configArcoResolverPlugin from './plugin/arcoResolver';
 import configStyleImportPlugin from './plugin/styleImport';
 import configImageminPlugin from './plugin/imagemin';
+import configVersionPlugin from './plugin/version'; // B6 构建时写 version.json
 
 export default mergeConfig(
   {
@@ -19,6 +20,7 @@ export default mergeConfig(
       configArcoResolverPlugin(),
       configStyleImportPlugin(),
       configImageminPlugin(),
+      configVersionPlugin(), // B6 依赖后端 A11 对入口文件 no-cache，两者成对落地
     ],
     build: {
       rollupOptions: {

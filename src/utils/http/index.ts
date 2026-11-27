@@ -14,6 +14,7 @@ import { setObjToUrlParams, deepMerge } from '@/utils';
 import { joinTimestamp, formatRequestDate } from './helper';
 import useUserStore from '@/store/modules/user';
 import { AxiosRetry } from '@/utils/http/axiosRetry';
+import { triggerLogoutPending, isLogoutPending, isLogoutPendingCancel, removeInflightController } from './authPending';
 import md5 from 'md5'
 import { Message,Modal,Notification} from '@arco-design/web-vue';
 import { Encrypt } from '@/utils/CryptoJS'
@@ -68,10 +69,14 @@ const transform: AxiosTransform = {
     let timeoutMsg = '';
     switch (code) {
       case ResultEnum.TIMEOUT:
+        // B3 业务 401 双路径熔断：setLogoutPending + 取消全部在途请求 + 2 秒防抖，
+        // 并发 401 只清一次登录态（与 HTTP 401 路径 checkStatus.ts 共用 authPending）
         options.errorMessageMode = 'message'//第一错误提示
         timeoutMsg = '登录超时,请重新登录!';
-        const userStore = useUserStore();
-        userStore.clearloginfo();
+        if (triggerLogoutPending()) {
+          const userStore = useUserStore();
+          userStore.clearloginfo();
+        }
         break;
       default:
         if (message) {
@@ -176,6 +181,12 @@ const transform: AxiosTransform = {
    */
   responseInterceptorsCatch: (axiosInstance: AxiosResponse, error: any) => {
     const { response, code, message, config } = error || {};
+    // B3 熔断取消的请求静默失败，不提示不重试
+    if (isLogoutPendingCancel(error)) {
+      // @ts-ignore 从熔断注册表注销
+      config?.__abortController && removeInflightController(config.__abortController);
+      return Promise.reject(error);
+    }
     const errorMessageMode = config?.requestOptions?.errorMessageMode || 'none';
     const msg: string = (response?.data?.message) ||(response?.data?.error?.message ?? '');
     const err: string = error?.toString?.() ?? '';
@@ -201,9 +212,18 @@ const transform: AxiosTransform = {
       throw new Error(error as unknown as string);
     }
 
+    // B3 注销熔断注册表中的控制器
+    // @ts-ignore
+    config?.__abortController && removeInflightController(config.__abortController);
+
     checkStatus(error?.response?.status, msg, errorMessageMode);
 
     // 添加自动重试机制 保险起见 只针对GET请求
+    // B3 【踩坑注释】GET 自动重试机制保留，但 401/logout_pending 绝不重试直接短路，
+    // 否则熔断后重试会立刻再收 401，形成请求风暴
+    if (isLogoutPending() || error?.response?.status === 401) {
+      return Promise.reject(error);
+    }
     const retryRequest = new AxiosRetry();
     const { isOpenRetry } = config.requestOptions.retryRequest;
     config.method?.toUpperCase() === RequestEnum.GET &&

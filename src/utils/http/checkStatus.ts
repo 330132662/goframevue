@@ -1,6 +1,7 @@
 import type { ErrorMessageMode } from '/#/axios';
 import useUserStore from '/@/store/modules/user';
 import { Message,Modal } from '@arco-design/web-vue';
+import { triggerLogoutPending } from './authPending';
 let  stp ="ROUTE_JUMP";
 
 export function checkStatus(
@@ -19,12 +20,16 @@ export function checkStatus(
     // Jump to the login page if not logged in, and carry the path of the current page
     // Return to the current page after successful login. This step needs to be operated on the login page.
     case 401:
+      // B3 HTTP 401 路径：独立防抖锁 + 共用 authPending，
+      // 与业务 code=401 路径互斥（并发 401 只清一次登录态）
       userStore.setTokenData(undefined);
       errMessage = msg || '用户没有权限（令牌、用户名、密码错误）!';
-      if (stp == "PAGE_COVERAGE") {
-        userStore.setSessionTimeout(true);
-      } else {
-        userStore.logout(true);
+      if (triggerLogoutPending()) {
+        if (stp == "PAGE_COVERAGE") {
+          userStore.setSessionTimeout(true);
+        } else {
+          userStore.logout(true);
+        }
       }
       break;
     case 403:

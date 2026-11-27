@@ -9,6 +9,7 @@ import {
 } from '@/api/user';
 import { setToken,getToken, clearToken } from '@/utils/auth';
 import { removeRouteListener } from '@/utils/route-listener';
+import { resetLogoutPending } from '@/utils/http/authPending';
 import { UserState} from './types';
 import useAppStore from '../app';
 
@@ -63,6 +64,7 @@ const useUserStore = defineStore('user', {
       try {
         const res = await userLogin(loginForm);
         setToken(res);
+        resetLogoutPending(); // B3 登录成功复位 401 熔断标记，放行后续带 token 请求
         const appStore = useAppStore();
         appStore.setDynamicAddedRoute(false);//重注册路由
         return this.afterLoginAction();
@@ -93,6 +95,8 @@ const useUserStore = defineStore('user', {
       clearToken();
       removeRouteListener();
       appStore.clearServerMenu();
+      // B5 登出/换账号时同步重置动态路由注册标记，防止守卫误判跳过 addRoute
+      appStore.setDynamicAddedRoute(false);
     },
     setSessionTimeout(flag: boolean) {
       this.sessionTimeout = flag;
