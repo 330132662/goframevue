@@ -10,7 +10,7 @@ export default mergeConfig(
         strict: true,
       },
       host: true,
-      port:9600, // 这是页面端口
+      port:9606, // 这是页面端口
       proxy: {
         '/admin': {
           target: 'http://127.0.0.1:8600/admin',//后端端口  代理的地址(http://youdomain.cn替换你自己的)
