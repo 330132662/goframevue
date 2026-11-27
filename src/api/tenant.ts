@@ -7,6 +7,8 @@ enum Api {
   save = '/tenant/save',
   upStatus = '/tenant/upStatus',
   del = '/tenant/del',
+  adminList = '/tenant/adminList',
+  adminInit = '/tenant/adminInit',
   channelList = '/tenant/channelList',
   channelSave = '/tenant/channelSave',
   channelDel = '/tenant/channelDel',
@@ -26,6 +28,12 @@ export function upStatus(params: object) {
 }
 export function del(params: object) {
   return defHttp.delete({ url: Api.del, params }, { errorMessageMode: 'message' });
+}
+export function adminList(params: any) {
+  return defHttp.get({ url: Api.adminList, params }, { errorMessageMode: 'message' });
+}
+export function adminInit(params: object) {
+  return defHttp.post({ url: Api.adminInit, params }, { errorMessageMode: 'message' });
 }
 export function channelList(params: any) {
   return defHttp.get({ url: Api.channelList, params }, { errorMessageMode: 'message' });

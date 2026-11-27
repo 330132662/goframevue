@@ -46,6 +46,7 @@
         </template>
         <template #operations="{ record }">
           <a-space>
+            <a-link @click="openAdmin(record)">管理员</a-link>
             <a-link @click="openChannel(record)">渠道</a-link>
             <a-link @click="openTenant(true, record)">编辑</a-link>
             <a-popconfirm content="停用后该租户所有用户无法登录，确定吗？" @ok="handleStatus(record, record.status === 0 ? 1 : 0)" v-if="record.status === 0">
@@ -129,6 +130,43 @@
       </a-form>
     </a-modal>
 
+    <!-- 租户管理员：首次登录必须在此初始化（账号+角色+关联一次建好） -->
+    <a-modal v-model:visible="adminVisible" :title="`管理员 - ${currentTenant.name}`" width="680px" :footer="false">
+      <a-alert type="info" style="margin-bottom: 12px">
+        租户首次登录需先在这里创建管理员；会自动建账号、租户超管角色并绑定，无需进租户后台配置。
+        租户后台入口：<b>/webadmin/#/tenant/login?tenant={{ currentTenant.code }}</b>
+      </a-alert>
+      <div class="channel-toolbar">
+        <a-button type="primary" @click="openAdminForm()">
+          <template #icon><icon-plus /></template>
+          新增/重置管理员
+        </a-button>
+      </div>
+      <a-table row-key="id" :columns="adminColumns" :data="adminData" :pagination="false" size="small">
+        <template #status="{ record }">
+          <a-tag :color="record.status === 0 ? 'green' : 'red'">{{ record.status === 0 ? '正常' : '禁用' }}</a-tag>
+        </template>
+      </a-table>
+    </a-modal>
+
+    <!-- 管理员表单 -->
+    <a-modal v-model:visible="adminFormVisible" title="初始化/重置租户管理员" width="520px" @ok="submitAdmin" @cancel="adminFormVisible = false">
+      <a-form ref="adminFormRef" :model="adminForm" :rules="adminRules" auto-label-width>
+        <a-form-item field="username" label="管理员账号">
+          <a-input v-model="adminForm.username" placeholder="如 admin" />
+        </a-form-item>
+        <a-form-item field="password" label="登录密码">
+          <a-input-password v-model="adminForm.password" placeholder="至少 6 位" />
+        </a-form-item>
+        <a-form-item field="name" label="姓名">
+          <a-input v-model="adminForm.name" placeholder="可选，默认同账号" />
+        </a-form-item>
+        <a-alert type="warning" style="margin-top: 4px">
+          账号已存在时会<b>重置密码</b>并解禁；每个租户自动拥有独立的「租户超级管理员」角色。
+        </a-alert>
+      </a-form>
+    </a-modal>
+
     <!-- 渠道管理 -->
     <a-modal v-model:visible="channelVisible" :title="`渠道配置 - ${currentTenant.name}`" width="820px" :footer="false">
       <div class="channel-toolbar">
@@ -189,6 +227,7 @@ import dayjs from 'dayjs';
 import useLoading from '@/hooks/loading';
 import {
   getList, getParent, save, upStatus, del,
+  adminList, adminInit,
   channelList, channelSave, channelDel,
 } from '@/api/tenant';
 
@@ -222,7 +261,7 @@ const columns: TableColumnData[] = [
   { title: '联系人', dataIndex: 'contact', width: 110 },
   { title: '状态', slotName: 'status', width: 90 },
   { title: '授权到期', slotName: 'expire_at', width: 120 },
-  { title: '操作', slotName: 'operations', width: 240, fixed: 'right' },
+  { title: '操作', slotName: 'operations', width: 320, fixed: 'right' },
 ];
 
 // ---------------- 租户表单 ----------------
@@ -269,10 +308,55 @@ const handleDel = async (record: any) => {
   fetchData();
 };
 
+// 当前操作的租户（管理员 / 渠道共用）
+const currentTenant = ref<any>({});
+
+// ---------------- 租户管理员 ----------------
+const adminVisible = ref(false);
+const adminFormVisible = ref(false);
+const adminFormRef = ref<FormInstance>();
+const adminData = ref<any[]>([]);
+const adminForm = reactive<any>({ username: '', password: '', name: '' });
+const adminRules = {
+  username: [{ required: true, message: '请填写管理员账号' }],
+  password: [{ required: true, minLength: 6, message: '密码至少 6 位' }],
+};
+const adminColumns: TableColumnData[] = [
+  { title: 'ID', dataIndex: 'id', width: 70 },
+  { title: '账号', dataIndex: 'username', width: 140 },
+  { title: '姓名', dataIndex: 'name', width: 140 },
+  { title: '状态', slotName: 'status', width: 90 },
+  { title: '创建时间', dataIndex: 'createtime', width: 170 },
+];
+const loadAdmin = async () => {
+  adminData.value = await adminList({ tenant_id: currentTenant.value.id }) || [];
+};
+const openAdmin = async (record: any) => {
+  currentTenant.value = record;
+  await loadAdmin();
+  adminVisible.value = true;
+};
+const openAdminForm = () => {
+  Object.assign(adminForm, { username: '', password: '', name: '' });
+  adminFormVisible.value = true;
+};
+const submitAdmin = async () => {
+  const err = await adminFormRef.value?.validate();
+  if (err) return;
+  const res = await adminInit({
+    tenant_id: currentTenant.value.id,
+    username: adminForm.username,
+    password: adminForm.password,
+    name: adminForm.name,
+  });
+  Message.success(`已就绪：租户 ${res?.tenant_code || ''} / 账号 ${res?.username || adminForm.username}`);
+  adminFormVisible.value = false;
+  await loadAdmin();
+};
+
 // ---------------- 渠道 ----------------
 const channelVisible = ref(false);
 const channelFormVisible = ref(false);
-const currentTenant = ref<any>({});
 const channelData = ref<any[]>([]);
 const channelFormRef = ref<FormInstance>();
 const channelForm = reactive<any>({});
