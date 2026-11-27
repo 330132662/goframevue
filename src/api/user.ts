@@ -8,6 +8,9 @@ export interface LoginData {
   password: string;
   captcha: number|undefined;
   codeid: string;
+  // 登录入口分流：platform=/login，tenant_admin=/tenant/login
+  app_type?: string;
+  tenant_code?: string;
 } 
 enum Api {
   //用户

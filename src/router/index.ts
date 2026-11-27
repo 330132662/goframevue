@@ -22,6 +22,17 @@ const router = createRouter({
       component: () => import('@/views/login/index.vue'),
       meta: {
         requiresAuth: false,
+        appType: 'platform',
+      },
+    },
+    {
+      // 租户后台入口：与平台后台共用同一份 dist，靠 app_type 分流菜单与权限
+      path: '/tenant/login',
+      name: 'tenantLogin',
+      component: () => import('@/views/login/index.vue'),
+      meta: {
+        requiresAuth: false,
+        appType: 'tenant_admin',
       },
     },
     ...appRoutes,

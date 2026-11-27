@@ -43,12 +43,12 @@
         <div class="login-card">
           <div class="login-title">{{isEmailLogin?$t('login.form.tabemail'):$t('login.form.welcome')+`${AppTitle}`}}</div>
           <!--表单-->
-          <EmailLogin v-show="isEmailLogin" />
-          <a-tabs v-show="!isEmailLogin" class="login-right-form">
+          <EmailLogin v-if="!isTenantLogin && isEmailLogin" />
+          <a-tabs v-if="!isTenantLogin || !isEmailLogin" v-show="!isEmailLogin" class="login-right-form">
             <a-tab-pane key="1" :title="$t('login.form.tabacount')">
               <AccountLogin />
             </a-tab-pane>
-            <a-tab-pane key="2" :title="$t('login.form.tabmobile')">
+            <a-tab-pane v-if="!isTenantLogin" key="2" :title="$t('login.form.tabmobile')">
               <PhoneLogin />
             </a-tab-pane>
           </a-tabs>
@@ -59,8 +59,13 @@
             {{ $t('login.form.login.and') }}
             <a href="https://goflys.cn/" target="_blank">{{ $t('login.form.login.policy') }}</a>
           </div>
-          <!--其他登录方式-->
-          <div class="login-ouath text-conent">
+          <!--登录入口切换-->
+          <div class="entry-switch">
+            <router-link v-if="currentAppType === 'platform'" to="/tenant/login">租户后台登录 →</router-link>
+            <router-link v-else to="/login">平台后台登录 →</router-link>
+          </div>
+          <!--其他登录方式：租户后台仅允许账号+租户编码登录-->
+          <div v-if="!isTenantLogin" class="login-ouath text-conent">
             <a-divider orientation="center">{{ $t('login.form.other') }}</a-divider>
             <div class="optoin-list">
               <div v-if="isEmailLogin" class="mode item" @click="toggleLoginMode"><icon-user />{{ $t('login.form.tabacountmobile') }}</div>
@@ -77,7 +82,7 @@
             </div>
           </div>
           <!--没有账号跳转注册-->
-          <div class="no-account-register flex-all-center">
+          <div v-if="!isTenantLogin" class="no-account-register flex-all-center">
             {{ $t('login.form.no-acount') }}<a href="https://goflys.cn/"><span style="font-weight: 500;">{{ $t('login.form.register.now') }}</span></a>
           </div>
 
@@ -118,6 +123,8 @@ import { Icon } from '@/components/Icon';
 import { Message } from '@arco-design/web-vue'
 import { LOCALE_OPTIONS } from '@/locale';
 import useLocale from '@/hooks/locale';
+import { useRoute } from 'vue-router';
+import { getAppType, setAppType, clearToken } from '@/utils/auth';
 import loginBigBg from './image/login_big_bg.jpeg'; // 确保路径正确
 const appStore = useAppStore();
 const theme = computed(() => {
@@ -204,6 +211,15 @@ const isMobile=()=> {
   }
 }
 const isPhone = ref(isMobile())
+const loginRoute = useRoute()
+const currentAppType = (loginRoute.meta?.appType as string) || 'platform'
+const isTenantLogin = currentAppType === 'tenant_admin'
+// 切换入口（平台后台 <-> 租户后台）时清掉旧 token，避免端类型串号
+if (getAppType() !== currentAppType) {
+  clearToken()
+  setAppType(currentAppType)
+}
+
 onMounted(() => {
     isPhone.value =isMobile()
 })
@@ -224,6 +240,12 @@ const onOauth = async (source: string) => {
 }
 </script>
 <style lang="less" scoped>
+.entry-switch{
+  text-align: center;
+  padding: 4px 0 10px;
+  font-size: 13px;
+  a{ color: rgb(var(--primary-6)); }
+}
 :deep(.arco-tabs-nav-tab-list){
   margin-left: -16px;
 }

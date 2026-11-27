@@ -7,6 +7,14 @@
     size="large"
     @submit="handleLogin"
   >
+    <!-- 租户后台入口：租户编码（也可通过 URL ?tenant=xxx 预填） -->
+    <a-form-item v-if="isTenantLogin" field="tenantCode" hide-label :rules="[{ required: true, message: '请输入租户编码'}]" :validate-trigger="['change', 'blur']">
+      <a-input v-model="form.tenantCode" placeholder="租户编码" allow-clear>
+        <template #prefix>
+          <icon-apps />
+        </template>
+      </a-input>
+    </a-form-item>
     <a-form-item field="username" hide-label :rules="[{ required: true, message: $t('login.form.userName.errMsg')}]" :validate-trigger="['change', 'blur']">
       <a-input v-model="form.username" :placeholder="$t('login.form.userName.placeholder')+defAccount.username"  allow-clear  >
         <template #prefix>
@@ -55,12 +63,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref,reactive,onBeforeUnmount,onMounted} from 'vue';
+import { ref,reactive,watch,onBeforeUnmount,onMounted} from 'vue';
 import { type FormInstance, Message } from '@arco-design/web-vue'
 import { useRouter } from 'vue-router';
 import { useStorage } from '@vueuse/core'
 import { getCaptcha } from '@/api/user';
 import { useUserStore, useAppStore } from '@/store';
+import { setTenantCode } from '@/utils/auth';
 import { getHomePath } from '@/router/constants';
 import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
@@ -77,13 +86,22 @@ if(dfAcPass&&dfAcPass.length==2){
   defAccount.value.password =  `（演示密码：${dfAcPass[1]}）`
 }
 const formRef = ref<FormInstance>()
+const router = useRouter()
+// 租户登录时显示租户编码字段；支持 ?tenant=brand_a 预填
+const isTenantLogin = router.currentRoute.value.meta?.appType === 'tenant_admin'
+const tenantFromUrl = (router.currentRoute.value.query?.tenant || router.currentRoute.value.query?.tenant_code || '') as string
 const form = reactive({
   username: loginConfig.value.username,
   password: loginConfig.value.password,
   captcha: "",
   codeid: "",
-  expired: false
+  expired: false,
+  tenantCode: tenantFromUrl
 })
+if (isTenantLogin) {
+  setTenantCode(tenantFromUrl)
+  watch(() => form.tenantCode, (v) => setTenantCode(v || ''))
+}
 
 // 验证码过期定时器
 const timer=ref() 
@@ -126,7 +144,6 @@ const handleCaptcha = async() => {
 }
 
 const userStore = useUserStore()
-const router = useRouter()
 const loading = ref(false)
 // 登录
 const handleLogin = async () => {

@@ -3,6 +3,7 @@ import type { RouteRecordRaw } from 'vue-router';
 export const WHITE_LIST = [
   { name: 'notFound', children: [] },
   { name: 'login', children: [] },
+  { name: 'tenantLogin', children: [] },
 ];
 
 export const NOT_FOUND = {

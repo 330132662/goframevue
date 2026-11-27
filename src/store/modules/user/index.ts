@@ -7,7 +7,7 @@ import {
   getUserInfo,
   // LoginData,
 } from '@/api/user';
-import { setToken,getToken, clearToken } from '@/utils/auth';
+import { setToken,getToken, clearToken, getTenantCode } from '@/utils/auth';
 import { removeRouteListener } from '@/utils/route-listener';
 import { resetLogoutPending } from '@/utils/http/authPending';
 import { UserState} from './types';
@@ -62,7 +62,16 @@ const useUserStore = defineStore('user', {
     // 登录/Login
     async login(loginForm: any) {
       try {
-        const res = await userLogin(loginForm);
+        // 登录路由分流：/tenant/login => tenant_admin，其余 => platform
+        const appType = router.currentRoute.value.meta?.appType === 'tenant_admin'
+          ? 'tenant_admin'
+          : 'platform';
+        const payload = {
+          ...loginForm,
+          app_type: appType,
+          tenant_code: appType === 'tenant_admin' ? getTenantCode() : '',
+        };
+        const res = await userLogin(payload);
         setToken(res);
         resetLogoutPending(); // B3 登录成功复位 401 熔断标记，放行后续带 token 请求
         const appStore = useAppStore();
@@ -109,15 +118,17 @@ const useUserStore = defineStore('user', {
         this.logoutCallBack();
       }
       setToken(undefined);
-      goLogin && router.push('/login');
+      const isTenant = router.currentRoute.value.meta?.appType === 'tenant_admin';
+      goLogin && router.push(isTenant ? '/tenant/login' : '/login');
     },
     //清除登录信息
     clearloginfo() {
       clearToken();
       removeRouteListener();
       const currentRoute = router.currentRoute.value;
+      const isTenant = currentRoute.meta?.appType === 'tenant_admin';
       router.push({
-        name:"login",
+        name: isTenant ? "tenantLogin" : "login",
         query: {
           ...router.currentRoute.value.query,
           redirect: currentRoute.name as string,
