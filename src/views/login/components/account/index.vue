@@ -21,6 +21,10 @@
         </template>
       </a-input-password>
     </a-form-item>
+    <!-- 白名单IP：原验证码位置提示免验证码 -->
+    <a-form-item v-if="!captchaShow && ipWhitelisted" hide-label>
+      <a-alert type="success" class="wl-alert">您位于IP白名单（{{ clientIp || '未知' }}），无需图形验证码</a-alert>
+    </a-form-item>
     <a-form-item field="captcha" v-if="captchaShow" hide-label :rules="[{ required: true, message: $t('login.form.verification.errMsg')}]" >
       <a-input v-model="form.captcha" :placeholder="$t('login.form.verification.placeholder')" :max-length="4" allow-clear style="flex: 1 1" hide-button/>
       <div class="captcha-container" @click="handleCaptcha">
@@ -31,6 +35,10 @@
           <p>{{$t("login.form.verification.expired") }}</p>
         </div>
       </div>
+    </a-form-item>
+    <!-- 非白名单IP：验证码下方提示可申请加白 -->
+    <a-form-item v-if="captchaShow && !ipWhitelisted" hide-label style="margin-top:-12px;">
+      <a-alert type="warning" class="wl-alert">您的IP（{{ clientIp || '未知' }}）不在白名单，可联系管理员加白</a-alert>
     </a-form-item>
     <a-form-item style="margin-top:-5px;margin-bottom:15px;">
       <a-row justify="space-between" align="center" class="w-full">
@@ -101,13 +109,18 @@ onBeforeUnmount(() => {
 
 const captchaImgBase64 = ref()
 const captchaShow = ref<boolean>(false)
+// 来源IP与白名单状态（后端 getCaptcha 随验证码数据回传）
+const clientIp = ref<string>('')
+const ipWhitelisted = ref<boolean>(false)
 // 获取验证码
 const handleCaptcha = async() => {
   const resdata= await getCaptcha({type:"image"})
-  const { id,show, img, expireTime } = resdata
+  const { id,show, img, expireTime, ip, whitelisted } = resdata
   form.codeid = id
   captchaShow.value= show
   captchaImgBase64.value = img
+  clientIp.value = ip || ''
+  ipWhitelisted.value = !!whitelisted
   form.expired = false
   startTimer(expireTime)
 }
@@ -197,6 +210,13 @@ onMounted(() => {
 
 .btn {
   height: 40px;
+}
+
+.wl-alert {
+  width: 100%;
+  font-size: 12px;
+  line-height: 1.6;
+  word-break: break-all;
 }
 
 .captcha-container {
