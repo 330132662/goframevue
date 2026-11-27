@@ -22,7 +22,7 @@
           <div class="custom-notes">
             <div class="notes-header">
               <div class="notes-title" v-html="loginTitle">
-                 
+
               </div>
               <div class="notes-desc">
                 <template v-for="text in loginDesc">
@@ -78,7 +78,7 @@
           </div>
           <!--没有账号跳转注册-->
           <div class="no-account-register flex-all-center">
-            {{ $t('login.form.no-acount') }}<a href="https://goflys.cn/"><span style="font-weight: 500;">{{ $t('login.form.register.now') }}</span></a> 
+            {{ $t('login.form.no-acount') }}<a href="https://goflys.cn/"><span style="font-weight: 500;">{{ $t('login.form.register.now') }}</span></a>
           </div>
 
         </div>
@@ -94,11 +94,11 @@
         <div class="text-below flex flex-middle flex-between">
           <div class="below-left flex flex-middle">
             <img class="beian-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAC3FBMVEUAAAD+/ODz6Kr//+PeqFfYrn3x167k0JXoxnyaaVzhs2ifaFXbrGLkvFnpyF7v2X/kwm3cp1nhsGfqw3rZqG3ntVzjrFPt3oDjvGnfr2fbnFGti3q0lH7ktoLryXn9v1T4znr/74bnvGz034v+2I/ktoDz6ZLkwY/Dfz7buoftzYbq2IPr0pjs3bLv6KPRrnbKhFv79ND488n/+dDZr4Lx38f/+cH/95f42oL7/97s2Y3++uzw1rvTk3DmuloAAHkBAm7uzWYAAGXktV3qvFr/0ljksE7fo0rWHxhrdocAAIAABHf143Pyy27w1GwGA2jtymHpwWDqxV/qyVyTeFrrwFflwFPislP+xVLpsErbmUfVkEbysETemUTpgj7ThT3XdTg5FDjdhTXWZTDaTCm7TCbTOCLXPiD9LA/QFg3UAwnOAQOEj5kcPpdyhZSptJEACJFpfo4AG44XMInFvYfTvIejmYSVkINyeoJzdoK9un6SjX7FrnwAEHp8enny2HjWwHjKtnhcX3jYzHeNhnfu2HWUjHWsonPNwnH70m9WTm8AAW//723pym3dtmn/0mbnxGa0o2ZeWWb8zGT/4mPtwmJuYmL/22D/vmB5ZGC9kF7/2l0MAF3uyFqnjVn4xFjYnli0mVi5i1jiqVfyyVbmtlbXkVNUOFPlvFLpt1LNrFKjfVLuvlBgHlDsuU/ouU9ONU/ov05ODk7/2E02Gk3jqkqEaUr/tUngjkf7n0bXikb6xERCJETdn0LckUG1gD/ooD3Ulj3jkz3TZT3WjjzOeDqBWDr3pDnglTlMADnbbTf2gjbkbzaTYDZpAjbplzTtcTTEazPXXzOeXzDscS3MPi38jizJWSrVSCrrXynzfCjVdCjZRyjTQCbFUiTlYCPXPSHLPSHWMR/wXh7iRh7GPh3PLBrSIRrWGhfMJxPGJxPRDBG/ABG2ABCxDg7BDAvEGArZAAbJAALPAADa4ry/AAAAPnRSTlMACEIaxqxpAvv7+ff19PDs7Ovn5uXk5OHg29LRy8fEw8G+vLqysaufnJiVk4yDfG9dXFpMSEFBNTApJyEcFO3QiBQAAAFzSURBVBjTYoACZjYZaTZmBmRgxsp9+di21ZysxggxxlmJZy/ev9LXnriIEa5VYUPIray0lOyd+ctVoKKWXFsmXXvu8exO5vsZnnuErcCC5m1e8x5nPXrxOu3TzSqHFguQmI18tff+Jx89HqR7fE5v7q5TtAYK6h8v81p4Ovv6wbAdmRc6HMpddYGCmudrCqbtTn2anHBq15SZ9iUx6kBBkSTfXIfUuBsPL909c9i/uP6EJFAQMJ6j2/Ps32Yk30uIy3jjXxgRLwEUVN07ubTo5LsPr16mXD1X29gZrgUUlN23uD/H28lp09o5TvYVs523ygEFORYsO+TbEOI5cVVTV+XUA1Fu/EBBoxXu0bfnT98cEePa45oUHR7MBHK9IV9Y/BFHFzc7R7/YqF4BsBiDqVBw0NLQoMAAF3c7vwmCEEFln1ZnZxe3wJWx7nZ2jj5qkNDU5l2/ZE3kusjQuRsDxPXYoQFqa6DBIiUmyqKkYwIWAgD35oZAL/mkFwAAAABJRU5ErkJggg==">
-            <a href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=110108020321xx" target="_blank" rel="noreferrer">滇公网安备 110108020321xx号</a>
+            <a href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=110108020321xx" target="_blank" rel="noreferrer">鲁公网安备 110108020321xx号</a>
             <span>|</span>
-            <a href="https://beian.miit.gov.cn/#/Integrated/index" target="_blank" rel="noreferrer">滇ICP备19001128号-3</a>
+            <a href="https://beian.miit.gov.cn/#/Integrated/index" target="_blank" rel="noreferrer">鲁ICP备19001128号-3</a>
           </div>
-          <div class="below-right">增值电信业务经营许可证：牌照滇B2-20202518</div>
+          <div class="below-right">增值电信业务经营许可证：牌照鲁B2-20202518</div>
         </div>
       </div>
 
@@ -196,16 +196,16 @@ const isMobile=()=> {
         meta = document.createElement('meta')
         meta.setAttribute('name', 'viewport')
         document.head.appendChild(meta)
-      } 
+      }
       meta.setAttribute('content', content)
     return true;
   } else {
     return false;
   }
 }
-const isPhone = ref(isMobile()) 
+const isPhone = ref(isMobile())
 onMounted(() => {
-    isPhone.value =isMobile()  
+    isPhone.value =isMobile()
 })
 onUnmounted(() => {
   if (isPhone.value) {
@@ -213,8 +213,8 @@ onUnmounted(() => {
       let meta = document.querySelector('meta[name=viewport]')
       if(meta) {
          meta.setAttribute('content', content)
-      } 
-  } 
+      }
+  }
 })
 // 第三方登录授权
 const onOauth = async (source: string) => {
@@ -309,7 +309,7 @@ const onOauth = async (source: string) => {
               font-weight: 900;
               letter-spacing: 2px;
               color: var(--color-neutral-10);
-              
+
             }
             .notes-desc{
               font-size: 20px;
@@ -525,7 +525,7 @@ a {
         padding: 48px 20px 0px 20px;
       }
     }
-    
+
   }
 }
 :deep(.arco-divider-text){
@@ -559,7 +559,7 @@ a {
     margin-top:unset !important;
    }
    .icon-left{
-    white-space: nowrap; 
+    white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
    }
@@ -598,7 +598,7 @@ a {
     .no-account-register{
       padding-bottom: 20px;
     }
-    
+
   }
 }
 </style>

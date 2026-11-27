@@ -12,9 +12,9 @@ window.globalConfig = {
     AppTitle_zhTW:"GoframePro開發框架",
 	AppTitle_enUS:"GoframePro Dev frame",
     CompanySite:"//goflys.cn/",//公司官网
-    ICP:"滇ICP备19001128号-3",//备案号
-    Company:"昆明立师科技有限公司",//公司名称
-    Address:"中国·昆明",
+    ICP:"鲁ICP备19001128号-3",//备案号
+    Company:"潍坊立师科技有限公司",//公司名称
+    Address:"中国·潍坊",
     
     TeamSite:"//goflys.cn/",//技术团队官网
     Team:"GoFly技术团队",//技术团队，没有则填空""
