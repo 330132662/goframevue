@@ -157,15 +157,21 @@
             formData.value.menu=[]
           }
           //获取菜单
-          const pid = unref(isUpdate)?item.record.pid:0;
-          getRuls(pid)
+          // 踩坑：编辑场景必须传 role_id（当前编辑角色的 id），不能传 pid（上级角色id）。
+          // 旧逻辑编辑时传 pid=item.record.pid，回显的是上级角色的 rules 而不是
+          // 当前角色自己的，导致"改完保存再打开看不到勾选"。
+          const isEdit = unref(isUpdate);
+          const params = isEdit
+            ? { role_id: item.record.id }
+            : { pid: 0 };
+          getRuls(params)
       }
-      //选择上级角色同时更新菜单数据
+      //选择上级角色同时更新菜单数据（新增子角色时不能超父角色权限范围）
       const handleUpRolsdata=()=>{
-        getRuls(formData.value.pid)
+        getRuls({ pid: formData.value.pid })
       }
-      const getRuls=async(pid:number)=>{
-        const menudata =await getMenuList({pid:pid})
+      const getRuls=async(params:{ pid?: number; role_id?: number })=>{
+        const menudata = await getMenuList(params)
          menutreeData.value=(menudata.list) as any as TreeItem[]
          btnRuleIds.value=(menudata.btn_rule_ids) as any as number[]
           nextTick(()=>{

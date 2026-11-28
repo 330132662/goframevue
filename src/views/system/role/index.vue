@@ -48,7 +48,8 @@
           {{dayjs(record.createtime).format("YYYY-MM-DD")}}
         </template>
         <template #status="{ record }">
-          <a-switch v-if="record.account_id!=0&&(record.pid==0||record.pid!=max_pid)" type="round" v-model="record.status" :checked-value="0" :unchecked-value="1" @change="handleStatus(record)">
+          <!-- 超管角色(rules='*')和顶级预置角色(account_id=0 且 pid=0)不允许开关状态 -->
+          <a-switch v-if="canManageRole(record)" type="round" v-model="record.status" :checked-value="0" :unchecked-value="1" @change="handleStatus(record)">
             <template #checked>
               开
             </template>
@@ -59,7 +60,10 @@
           <cell-status v-else :status="record.status"/>
         </template>
         <template #operations="{ record }">
-          <template v-if="record.account_id!=0&&(record.pid==0||record.pid!=max_pid)">
+          <!-- 踩坑：旧条件 record.account_id != 0 把平台代管/父租户代管子租户新建的角色
+               （account_id 可能是创建者 uid 或历史脏数据为 0）全部误伤 → 用户反馈
+               "只能看到角色，无法管理角色"。现在只保护超管角色和顶级预置角色。 -->
+          <template v-if="canManageRole(record)">
             <Icon icon="svgfont-edit-square" class="iconbtn" @click="handleEdit(record)" :size="18" color="#0960bd"></Icon>
             <a-divider direction="vertical" />
             <a-popconfirm content="您确定要删除吗?" @ok="handleDel(record)">
@@ -120,6 +124,15 @@
   const formModel = ref(generateFormModel());
   const artable=ref()
   const max_pid=ref(0)
+  // 哪些角色允许编辑/删除/开关状态：
+  // - 超管角色(rules='*')：保护，不允许降级/删除（后端 RoleSave 也有护栏）
+  // - 顶级预置角色(pid=0 且 account_id=0)：平台初始化的根角色，不动
+  // - 其余（租户自建 / 平台代管创建 / 父租户代管创建）全部允许
+  const canManageRole = (record: any) => {
+    if (record.rules === '*') return false;
+    if (record.pid === 0 && record.account_id === 0) return false;
+    return true;
+  }
   const fetchData = async () => {
     setLoading(true);
     try {

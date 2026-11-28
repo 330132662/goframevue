@@ -48,6 +48,7 @@
           <a-space>
             <a-link @click="openAdmin(record)">管理员</a-link>
             <a-link @click="openMerchantRoles(record)">角色</a-link>
+            <a-link @click="openMerchantAccounts(record)">账号</a-link>
             <a-link @click="openMerchant(true, record)">编辑</a-link>
             <a-popconfirm content="停用后该商户所有用户无法登录，确定吗？" @ok="handleStatus(record, record.status === 0 ? 1 : 0)" v-if="record.status === 0">
               <a-link>停用</a-link>
@@ -297,6 +298,12 @@ const submitAdmin = async () => {
 const openMerchantRoles = (record: any) => {
   setTenantProxy(record.id, `${record.name} (${record.code})`);
   router.push({ name: 'role' }).catch(() => router.push({ path: '/system/role' }));
+};
+// 父租户代管商户账号：写入代管上下文后跳到共用的账号管理页。
+// 后端 ResolveManageCtx 校验：仅允许代管自己的直接子商户账号。
+const openMerchantAccounts = (record: any) => {
+  setTenantProxy(record.id, `${record.name} (${record.code})`);
+  router.push({ name: 'account' }).catch(() => router.push({ path: '/system/account' }));
 };
 
 onMounted(fetchData);
