@@ -48,6 +48,7 @@
           <a-space>
             <a-link @click="openAdmin(record)">管理员</a-link>
             <a-link @click="openTenantRoles(record)">角色</a-link>
+            <a-link @click="openTenantAccounts(record)">账号</a-link>
             <a-link @click="openChannel(record)">渠道</a-link>
             <a-link @click="openTenant(true, record)">编辑</a-link>
             <a-popconfirm content="停用后该租户所有用户无法登录，确定吗？" @ok="handleStatus(record, record.status === 0 ? 1 : 0)" v-if="record.status === 0">
@@ -344,6 +345,12 @@ const openAdmin = async (record: any) => {
 const openTenantRoles = (record: any) => {
   setTenantProxy(record.id, `${record.name} (${record.code})`);
   router.push({ name: 'role' }).catch(() => router.push({ path: '/system/role' }));
+};
+// 平台代管某租户的账号管理：写入代管上下文后跳到共用的账号管理页。
+// 后端 ResolveManageCtx 校验只有平台 token 能代管租户账号。
+const openTenantAccounts = (record: any) => {
+  setTenantProxy(record.id, `${record.name} (${record.code})`);
+  router.push({ name: 'account' }).catch(() => router.push({ path: '/system/account' }));
 };
 const openAdminForm = () => {
   Object.assign(adminForm, { username: '', password: '', name: '' });

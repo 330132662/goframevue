@@ -65,7 +65,7 @@
 <script setup lang="ts">
 import { ref,reactive,watch,onBeforeUnmount,onMounted} from 'vue';
 import { type FormInstance, Message } from '@arco-design/web-vue'
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useStorage } from '@vueuse/core'
 import { getCaptcha } from '@/api/user';
 import { useUserStore, useAppStore } from '@/store';
@@ -87,9 +87,11 @@ if(dfAcPass&&dfAcPass.length==2){
 }
 const formRef = ref<FormInstance>()
 const router = useRouter()
+const route = useRoute()
 // 租户登录时显示租户编码字段；支持 ?tenant=brand_a 预填
-const isTenantLogin = router.currentRoute.value.meta?.appType === 'tenant_admin'
-const tenantFromUrl = (router.currentRoute.value.query?.tenant || router.currentRoute.value.query?.tenant_code || '') as string
+// 踩坑：必须用 useRoute() 而不是 router.currentRoute.value，后者在路由守卫/嵌套场景下拿不到正确的 meta
+const isTenantLogin = route.meta?.appType === 'tenant_admin'
+const tenantFromUrl = (route.query?.tenant || route.query?.tenant_code || '') as string
 const form = reactive({
   username: loginConfig.value.username,
   password: loginConfig.value.password,

@@ -1,5 +1,10 @@
 <template>
   <div class="container" >
+    <!-- 平台代管租户账号 / 租户代管子租户账号时的提示 -->
+    <a-alert v-if="proxyTenantId > 0" type="info" closable style="margin-bottom: 12px" @close="exitProxy">
+      正在代管【{{ proxyTenantName || proxyTenantId }}】的账号管理，新增/编辑/删除均作用于该租户。
+      <a-link style="margin-left: 8px" @click="exitProxy">退出代管</a-link>
+    </a-alert>
     <page-card breadcrumb fullTable :isFullscreen="isFullscreen">
        <template #searchLeft>
           <a-space>
@@ -79,6 +84,7 @@
   import type { TableColumnData } from '@arco-design/web-vue/es/table/interface';
   import cloneDeep from 'lodash/cloneDeep';
   import { shortcuts, dayjs} from '@/utils/dayjs';
+  import { getTenantProxyId, getTenantProxyName, clearTenantProxy } from '@/utils/tenantProxy';
   //数据
   import { columns} from './data';
   //表单
@@ -90,6 +96,15 @@
   import { useUserStore } from '@/store'
   import {tabletool,SizeProps,statusOptions} from '/@/components/tabletool';
   const userStore = useUserStore()
+  // 平台代管租户账号 / 租户代管子租户账号的上下文
+  const proxyTenantId = ref(getTenantProxyId());
+  const proxyTenantName = ref(getTenantProxyName());
+  const exitProxy = () => {
+    clearTenantProxy();
+    proxyTenantId.value = 0;
+    proxyTenantName.value = '';
+    fetchData();
+  };
   const isFullscreen = ref<boolean>(false);
   const [registerModal, { openModal }] = useModal();
   //分页
