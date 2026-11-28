@@ -10,6 +10,7 @@ import {
 import { setToken,getToken, clearToken, getTenantCode } from '@/utils/auth';
 import { removeRouteListener } from '@/utils/route-listener';
 import { resetLogoutPending } from '@/utils/http/authPending';
+import { clearTenantProxy } from '@/utils/tenantProxy';
 import { UserState} from './types';
 import useAppStore from '../app';
 
@@ -102,6 +103,7 @@ const useUserStore = defineStore('user', {
       const appStore = useAppStore();
       this.resetInfo();
       clearToken();
+      clearTenantProxy(); // 平台代管租户上下文随登录态一起失效
       removeRouteListener();
       appStore.clearServerMenu();
       // B5 登出/换账号时同步重置动态路由注册标记，防止守卫误判跳过 addRoute

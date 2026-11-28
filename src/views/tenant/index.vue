@@ -47,6 +47,7 @@
         <template #operations="{ record }">
           <a-space>
             <a-link @click="openAdmin(record)">管理员</a-link>
+            <a-link @click="openTenantRoles(record)">角色</a-link>
             <a-link @click="openChannel(record)">渠道</a-link>
             <a-link @click="openTenant(true, record)">编辑</a-link>
             <a-popconfirm content="停用后该租户所有用户无法登录，确定吗？" @ok="handleStatus(record, record.status === 0 ? 1 : 0)" v-if="record.status === 0">
@@ -221,10 +222,12 @@
 
 <script lang="ts" setup>
 import { ref, reactive, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { Message } from '@arco-design/web-vue';
 import type { FormInstance, TableColumnData } from '@arco-design/web-vue';
 import dayjs from 'dayjs';
 import useLoading from '@/hooks/loading';
+import { setTenantProxy } from '@/utils/tenantProxy';
 import {
   getList, getParent, save, upStatus, del,
   adminList, adminInit,
@@ -232,6 +235,7 @@ import {
 } from '@/api/tenant';
 
 const { loading, setLoading } = useLoading(false);
+const router = useRouter();
 const renderData = ref<any[]>([]);
 const statusOptions = [
   { label: '正常', value: 0 },
@@ -335,6 +339,11 @@ const openAdmin = async (record: any) => {
   currentTenant.value = record;
   await loadAdmin();
   adminVisible.value = true;
+};
+// 平台代管某租户的角色：写入代管上下文后跳到共用的角色管理页。
+const openTenantRoles = (record: any) => {
+  setTenantProxy(record.id, `${record.name} (${record.code})`);
+  router.push({ name: 'role' }).catch(() => router.push({ path: '/system/role' }));
 };
 const openAdminForm = () => {
   Object.assign(adminForm, { username: '', password: '', name: '' });

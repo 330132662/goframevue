@@ -1,6 +1,11 @@
 <template>
   <div class="container" >
     <page-card breadcrumb scrollPage :isFullscreen="isFullscreen">
+      <!-- 平台代管租户角色时的提示（租户自己登录不会显示） -->
+      <a-alert v-if="proxyTenantId > 0" type="info" closable style="margin-bottom: 12px" @close="exitProxy">
+        正在代管租户【{{ proxyTenantName || proxyTenantId }}】的角色，保存/删除均作用于该租户。
+        <a-link style="margin-left: 8px" @click="exitProxy">退出代管</a-link>
+      </a-alert>
       <div class="table-toolbar flex flex-between">
         <div class="left">
           <a-space>
@@ -71,8 +76,10 @@
 
 <script lang="ts" setup>
   import { ref, watch, nextTick } from 'vue';
+  import { useRouter } from 'vue-router';
   import useLoading from '@/hooks/loading';
   import { getList,upStatus,del} from '@/api/system/role';
+  import { getTenantProxyId, getTenantProxyName, clearTenantProxy } from '@/utils/tenantProxy';
   import type { TableColumnData } from '@arco-design/web-vue/es/table/interface';
   import cloneDeep from 'lodash/cloneDeep';
   import { shortcuts, dayjs} from '@/utils/dayjs';
@@ -86,6 +93,16 @@
   //用户信息
   type Column = TableColumnData & { checked?: true };
   const { loading, setLoading } = useLoading(true);
+  const router = useRouter();
+  // 平台代管上下文：API 层会自动带上 tenant_id，这里只负责提示与退出。
+  const proxyTenantId = ref(getTenantProxyId());
+  const proxyTenantName = ref(getTenantProxyName());
+  const exitProxy = () => {
+    clearTenantProxy();
+    proxyTenantId.value = 0;
+    proxyTenantName.value = '';
+    fetchData();
+  };
   const AddFormRef = ref();
   const renderData = ref([]);
   const cloneColumns = ref<Column[]>([]);
